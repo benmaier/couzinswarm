@@ -7,8 +7,8 @@ from mpl_toolkits.mplot3d import Axes3D
 if __name__ == "__main__":
 
     swarm = Swarm(number_of_fish=100,
-                  speed=0.1,
-                  noise_sigma=0.1,
+                  speed=1,
+                  noise_sigma=0.05,
                   turning_rate=0.1,
                   verbose=False,
                   angle_of_perception=np.pi)

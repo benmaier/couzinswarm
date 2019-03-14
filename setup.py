@@ -1,13 +1,16 @@
 from setuptools import setup
 
+# get __version__, __author__, and __email__
+exec(open("./couzinswarm/metadata.py").read())
+
 setup(name='couzinswarm',
-      version='0.0.1',
+      version=__version__,
       description="Simulating fish swarming behavior with the model by Iain Couzin et al.",
       url='https://www.github.com/benmaier/couzinswarm',
-      author='Benjamin F. Maier',
-      author_email='bfmaier@physik.hu-berlin.de',
-      license='MIT',
-      packages=['couzinswarm'],
+      author=__author__,
+      author_email=__email__,
+      license=__license__,
+      packages=setuptools.find_packages(),
       install_requires=[
           'numpy>=1.14',
       ],

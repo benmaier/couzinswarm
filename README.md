@@ -1,6 +1,6 @@
 # couzinswarm
 
-Simulate fish swarming behavior with the model by [Iain Couzin _et al._](https://www.sciencedirect.com/science/article/pii/S0022519302930651).
+Simulate fish swarming behavior with the model by [Iain Couzin et al.](https://www.sciencedirect.com/science/article/pii/S0022519302930651)
 
 ## Example
 

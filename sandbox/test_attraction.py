@@ -6,7 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 if __name__ == "__main__":
-    swarm = Swarm(number_of_fish=2,speed=0.01,noise_sigma=0,turning_rate=0.1)
+    swarm = Swarm(number_of_fish=2,speed=0.1,noise_sigma=0,turning_rate=0.1)
 
     #swarm.fish[0].position = np.array([50.,50.,50])
     #swarm.fish[0].direction = np.array([1.,0.,0.])
