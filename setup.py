@@ -1,4 +1,5 @@
 from setuptools import setup
+import setuptools
 
 # get __version__, __author__, and __email__
 exec(open("./couzinswarm/metadata.py").read())
@@ -13,5 +14,6 @@ setup(name='couzinswarm',
       packages=setuptools.find_packages(),
       install_requires=[
           'numpy>=1.14',
+          'progressbar2',
       ],
       zip_safe=False)

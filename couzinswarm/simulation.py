@@ -8,6 +8,8 @@ import numpy as np
 
 from couzinswarm.objects import Fish
 
+from progressbar import ProgressBar as PB
+
 class Swarm:
     """A class for a swarm simulation.
     
@@ -53,6 +55,8 @@ class Swarm:
         If they don't reflect they're considered to be periodic (not implemented yet)
     verbose : bool, default : False
         be chatty.
+    show_progress : bool, default : False
+        Show the progress of the simulation.
 
     """
 
@@ -69,6 +73,7 @@ class Swarm:
                  box_lengths=[100,100,100],
                  reflect_at_boundary = [True, True, True],
                  verbose=False,
+                 show_progress=False,
                  ):
         """
         Setup a simulation with parameters as defined in the paper.
@@ -132,6 +137,13 @@ class Swarm:
         self.box_lengths = np.array(box_lengths,dtype=float)
         self.reflect_at_boundary = reflect_at_boundary
         self.verbose = verbose
+        self.show_progress = show_progress
+
+        self.box_copies = [[0.],[0.],[0.]]
+
+        for dim, reflect in enumerate(self.reflect_at_boundary):
+            if not reflect:
+                self.box_copies[dim].extend([-self.box_lengths[dim],+self.box_lengths[dim]])
 
 
         self.fish = []
@@ -174,6 +186,7 @@ class Swarm:
             directions[i,0,:] = self.fish[i].direction
         
 
+        bar = PB(max_value=N_time_steps)
         # for each time step
         for t in range(1,N_time_steps+1):
 
@@ -184,45 +197,60 @@ class Swarm:
                 v_i = F_i.direction
 
                 for j in range(i+1,self.number_of_fish):
+
                     F_j = self.fish[j]
-                    r_j = F_j.position
-                    v_j = F_j.direction
+                    relationship_counted = False
 
-                    # get their distance, and unit distance vector
-                    r_ij = (r_j - r_i) 
-                    distance = np.linalg.norm(r_ij) 
-                    r_ij /= distance
-                    r_ji = -r_ij
+                    for X in self.box_copies[0]:
 
-                    # if their are within the repulsion zone, just add each other to
-                    # the repulsion events
-                    if distance < self.repulsion_radius:
-                        F_i.zor_update(r_ij)
-                        F_j.zor_update(r_ji)
-                    elif distance < self.repulsion_radius + self.orientation_width + self.attraction_width:
+                        if relationship_counted:
+                            break
 
-                        # if they are within the hollow balls of orientation and attraction zone, 
-                        # decide whether the fish can see each other
-                        angle_i = np.arccos(np.clip(np.dot(r_ij, v_i), -1.0, 1.0))
-                        angle_j = np.arccos(np.clip(np.dot(r_ji, v_j), -1.0, 1.0))
+                        for Y in self.box_copies[1]:
+                            for Z in self.box_copies[2]:
 
-                        if self.verbose:
-                            print("angle_i", angle_i, self.angle_of_perception)
-                            print("angle_j", angle_j, self.angle_of_perception)
 
-                        # if i can see j, add j's influence
-                        if angle_i < self.angle_of_perception:
-                            if distance < self.repulsion_radius + self.orientation_width:
-                                F_i.zoo_update(v_j)
-                            else:
-                                F_i.zoa_update(r_ij)
+                                r_j = F_j.position + np.array([X,Y,Z])
+                                v_j = F_j.direction
 
-                        # if j can see i, add i's influence
-                        if angle_j < self.angle_of_perception:
-                            if distance < self.repulsion_radius + self.orientation_width:
-                                F_j.zoo_update(v_i)
-                            else:
-                                F_j.zoa_update(r_ji)
+                                # get their distance, and unit distance vector
+                                r_ij = (r_j - r_i) 
+                                distance = np.linalg.norm(r_ij) 
+                                r_ij /= distance
+                                r_ji = -r_ij
+
+                                # if their are within the repulsion zone, just add each other to
+                                # the repulsion events
+                                if distance < self.repulsion_radius:
+                                    F_i.zor_update(r_ij)
+                                    F_j.zor_update(r_ji)
+                                    relationship_counted = True
+                                elif distance < self.repulsion_radius + self.orientation_width + self.attraction_width:
+
+                                    # if they are within the hollow balls of orientation and attraction zone, 
+                                    # decide whether the fish can see each other
+                                    angle_i = np.arccos(np.clip(np.dot(r_ij, v_i), -1.0, 1.0))
+                                    angle_j = np.arccos(np.clip(np.dot(r_ji, v_j), -1.0, 1.0))
+
+                                    if self.verbose:
+                                        print("angle_i", angle_i, self.angle_of_perception)
+                                        print("angle_j", angle_j, self.angle_of_perception)
+
+                                    # if i can see j, add j's influence
+                                    if angle_i < self.angle_of_perception:
+                                        if distance < self.repulsion_radius + self.orientation_width:
+                                            F_i.zoo_update(v_j)
+                                        else:
+                                            F_i.zoa_update(r_ij)
+
+                                    # if j can see i, add i's influence
+                                    if angle_j < self.angle_of_perception:
+                                        if distance < self.repulsion_radius + self.orientation_width:
+                                            F_j.zoo_update(v_i)
+                                        else:
+                                            F_j.zoa_update(r_ji)
+
+                                    relationship_counted = True
 
             # for each fish
             for i in range(self.number_of_fish):
@@ -244,7 +272,7 @@ class Swarm:
 
                         # if this boundary is periodic
                         if not self.reflect_at_boundary[dim]:
-                            if dr[dim] > self.box_lengths[dim]:
+                            if dr[dim]+F_i.position[dim] > self.box_lengths[dim]:
                                 dr[dim] -= self.box_lengths[dim]
                             else:
                                 dr[dim] += self.box_lengths[dim]
@@ -261,17 +289,14 @@ class Swarm:
                 positions[i,t,:] = F_i.position
                 directions[i,t,:] = F_i.direction
 
+            bar.update(t)
+
         return positions, directions
 
 
 if __name__ == "__main__":
 
     swarm = Swarm(number_of_fish=2,speed=0.01,noise_sigma=0,turning_rate=0.1)
-
-    #swarm.fish[0].position = np.array([50.,50.,50])
-    #swarm.fish[0].direction = np.array([1.,0.,0.])
-    #swarm.fish[1].position = np.array([50.,50.,50.3])
-    #swarm.fish[1].direction = np.array([1.,0.,0.])
 
     swarm.fish[0].position = np.array([47,50.,50.])
     swarm.fish[0].direction = np.array([0.,0.,1.])
