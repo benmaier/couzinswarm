@@ -118,7 +118,7 @@ class Swarm:
             (unit: fish length)
         reflect_at_boundary list of bool, default : [True, True, True]
             for each spatial dimension decided whether boundaries should reflect.
-            If they don't reflect they're considered to be periodic (not implemented yet)
+            If they don't reflect they're considered to be periodic
         verbose : bool, default : False
             be chatty.
 
