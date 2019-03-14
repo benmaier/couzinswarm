@@ -3,6 +3,8 @@ couzinswarm
 
 Simulate fish swarming behavior with the model by `Iain Couzin et
 al. <https://www.sciencedirect.com/science/article/pii/S0022519302930651>`__
+Use with caution as I can't seem to replicate some behavior (e.g. the
+torus swarming).
 
 Example
 -------
